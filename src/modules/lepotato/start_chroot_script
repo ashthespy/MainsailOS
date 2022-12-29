@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#### LePotato module
+####
+#### Written by Stephan Wendel aka KwadFan <me@stephanwe.de>
+#### Copyright 2021 - 2022
+#### https://github.com/mainsail-crew/MainsailOS
+####
+#### This File is distributed under GPLv3
+####
+
+#### Legal Notice:
+#### Most steps are copied from
+#### https://github.com/libre-computer-project/libretech-raspbian-portability/blob/master/oneshot.sh
+
+
+# shellcheck enable=require-variable-braces
+## Source error handling, leave this in place
+set -Ee
+
+# Set DEBIAN_FRONTEND to noninteractive
+if [[ "${DEBIAN_FRONTEND}" != "noninteractive" ]]; then
+    export DEBIAN_FRONTEND=noninteractive
+fi
+
+## Source CustomPIOS common.sh
+# shellcheck disable=SC1091
+source /common.sh
+install_cleanup_trap
+
+echo_green "Apply LePotato s905x-cc patches ..."
+
+# Step 1: disable rpi-eeprom-update service
+systemctl_if_exists disable rpi-eeprom-update
+
+# Step 2: Add Libre Computer GPG Keys
+sudo wget -O "${LEPOTATO_KEYRING_FILE}" "${LEPOTATO_KEYRING_FILE_URL}"
+
+# Step 3: Copy apt sources list for libre packages
+unpack /filesystem/root /
+
+# Step 4: Force apt update
+apt-get update --allow-releaseinfo-change
+
+# Step 5: Install Libre dependencies
+# shellcheck disable=SC2086
+apt-get install --yes ${LEPOTATO_DEPS}
+
+# Step 6: Install Grub Boot Manager
+sudo grub-install --directory=/usr/lib/grub/arm-efi --efi-directory=/boot --force-extra-removable --no-nvram
+
+# Step 7: Modify default grub config
+sudo sed -Ei "s/(GRUB_CMDLINE_LINUX_DEFAULT)=\"quiet/\1=\"noquiet/" /etc/default/grub
+
+# Step 8: Update Grub Config
+sudo update-grub
+
+# Step 9: Ensure correct position of grub.cfg
+if [[ -d /boot/raspbian ]]; then
+    mkdir -p /boot/EFI/debian
+    cp /boot/EFI/raspbian/grub.cfg /boot/EFI/debian/grub.cfg
+fi
+
+echo_green "Apply LePotato s905x-cc patches ... DONE!"

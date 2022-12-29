@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Shebang for better file detection
+#### mainsailos module
+####
+#### Written by Stephan Wendel aka KwadFan <me@stephanwe.de>
+#### Copyright 2021 - 2022
+#### https://github.com/mainsail-crew/MainsailOS
+####
+#### This File is distributed under GPLv3
+####
+
+# shellcheck disable=all
+
+[[ -n "$LEPOTATO_KEYRING_FILE_URL" ]] || LEPOTATO_KEYRING_FILE_URL="https://deb.libre.computer/repo/libre-computer-deb.gpg"
+[[ -n "$LEPOTATO_KEYRING_FILE" ]] || LEPOTATO_KEYRING_FILE="/usr/share/keyrings/libre-computer-deb.gpg"
+
+[[ -n "$LEPOTATO_DEPS" ]] || LEPOTATO_DEPS="grub-efi-arm64 linux-image-lc-stable-arm64 linux-headers-lc-stable-arm64"

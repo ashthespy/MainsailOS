@@ -67,6 +67,21 @@ jobs:
 
           echo "image=${IMAGE}" >> $GITHUB_OUTPUT
 
+      - name: Patch boot sector (LePotato only)
+        run: |
+          if [[ ${{ steps.build.outputs.sbc }} == lps905-64 ]]; then
+            WRK_DIR="repository/src/workspace/"
+            BOARD="aml-s905x-cc"
+            BOOT_LOADER_URL="http://boot.libre.computer/ci/${BOARD}"
+            wget -O "${WRK_DIR}" "${BOOT_LOADER_URL}"
+
+            dd if="${WRK_DIR}${BOARD}" of=${WRK_DIR}${{ steps.copy-image.outputs.image }} bs=512 seek=1
+
+          else
+            echo "Bootsector Patch skipped ..."
+            exit 0
+          fi
+
       - name: Upload failed Logfile
         if: failure()
         uses: actions/upload-artifact@v3
